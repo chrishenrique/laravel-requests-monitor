@@ -13,13 +13,13 @@ return new class extends Migration
             ->createIfNotExists('requests_monitor', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('domain');
-                $table->string('method', 10);
+                $table->string('method', 10)->default('GET');
                 $table->string('requester_type')->nullable();
                 $table->unsignedBigInteger('requester_id')->nullable();
-                $table->string('url');
+                $table->string('url')->nullable();
                 $table->string('route_name')->nullable();
                 $table->string('action_name')->nullable();
-                $table->json('content');
+                $table->json('content')->nullable();
                 $table->timestamp('created_at')->useCurrent();
                 
                 // Índices para performance no prune e queries comuns

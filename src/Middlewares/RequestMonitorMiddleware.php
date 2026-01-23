@@ -14,13 +14,11 @@ class RequestMonitorMiddleware
 
         $response = $next($request);
 
-        // Compatível com Livewire Navigate (headers específicos)
         $isLivewire = $request->header('X-Livewire') ||
                       str_contains($request->header('Accept', ''), 'livewire+json');
 
-        // Log sempre após o next() para capturar tudo
         $monitor->logFromRequest($request);
-
+  
         return $response;
     }
 }

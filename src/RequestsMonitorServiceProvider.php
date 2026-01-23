@@ -2,6 +2,7 @@
 
 namespace ChrisHenrique\RequestsMonitor;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use ChrisHenrique\RequestsMonitor\Console\InstallCommand;
@@ -11,7 +12,9 @@ class RequestsMonitorServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-         if ($this->app->runningInConsole()) {
+        require_once __DIR__ . '/helpers.php';
+
+        if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/requests-monitor.php' => config_path('requests-monitor.php'),
              ], 'requests-monitor-config');
