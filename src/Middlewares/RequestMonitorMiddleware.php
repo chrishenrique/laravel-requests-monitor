@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class RequestMonitorMiddleware
 {
-    public function handle(Request $request, Closure $next): mixed
+    public function handle(Request $request, Closure $next)
     {
         $monitor = app(RequestsMonitor::class);
 

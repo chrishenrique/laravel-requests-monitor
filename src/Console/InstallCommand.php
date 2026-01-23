@@ -27,13 +27,13 @@ class InstallCommand extends Command
 
         $this->info('🚀 Installing RequestsMonitor...');
 
-        // 1. Publish migrations se necessário
+        // 1. Publish migrations
         if (! file_exists(database_path('migrations/*requests_monitor_logs*'))) {
             $this->callSilent('vendor:publish', ['--tag' => 'requests-monitor-migrations', '--force' => true]);
             $this->info('✅ Published migrations');
         }
 
-        // 2. Prune inicial (limpa lixo antigo)
+        // 2. Prune
         if ($pruneFirst) {
             $this->callSilent('requests-monitor:prune', ['--force' => true]);
             $this->line('🧹 Initial prune completed');
@@ -47,7 +47,7 @@ class InstallCommand extends Command
         }
         $this->info('✅ Migration completed');
 
-        // 4. Prune final (limpa após migrate)
+        // 4. Prune final
         $this->callSilent('requests-monitor:prune', ['--force' => true]);
         $this->line('🧹 Final prune completed');
 

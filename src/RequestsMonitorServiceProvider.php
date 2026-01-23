@@ -46,7 +46,7 @@ class RequestsMonitorServiceProvider extends ServiceProvider
 
         $this->app->bind(
             Contracts\RequestsMonitor::class,
-            fn ($app) => $app->make(config('requests-monitor.logger_resolver',  Monitoring\DefaultRequestsMonitor::class))
+            fn ($app) => $app->make(config('requests-monitor.monitor_resolver',  Monitoring\DefaultRequestsMonitor::class))
         );
     }
 

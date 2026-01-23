@@ -22,7 +22,6 @@ return new class extends Migration
                 $table->json('content')->nullable();
                 $table->timestamp('created_at')->useCurrent();
                 
-                // Índices para performance no prune e queries comuns
                 $table->index(['domain', 'created_at']);
                 $table->index('requester_type');
                 $table->index('requester_id');
