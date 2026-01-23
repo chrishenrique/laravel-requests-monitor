@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use ChrisHenrique\RequestsMonitor\Console\InstallCommand;
 use ChrisHenrique\RequestsMonitor\Console\PruneRequestsMonitorCommand;
+use ChrisHenrique\RequestsMonitor\Models\RequestMonitor;
 
 class RequestsMonitorServiceProvider extends ServiceProvider
 {
@@ -23,9 +24,9 @@ class RequestsMonitorServiceProvider extends ServiceProvider
 
         $router = $this->app['router'];
          if (method_exists($router, 'aliasMiddleware')) {
-            $router->aliasMiddleware('requests-monitor', Middlewares\LogRequestMiddleware::class);
+            $router->aliasMiddleware('requests-monitor', Middlewares\RequestMonitorMiddleware::class);
         } else {
-            $router->middleware('requests-monitor', Middlewares\LogRequestMiddleware::class);
+            $router->middleware('requests-monitor', Middlewares\RequestMonitorMiddleware::class);
         }
 
         if ($this->app->runningInConsole()) {
@@ -38,6 +39,8 @@ class RequestsMonitorServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->schedulePruneIfNotExists();
         });
+
+        $this->configureModelConnection();
     }
 
     public function register()
@@ -68,5 +71,14 @@ class RequestsMonitorServiceProvider extends ServiceProvider
                 ->onOneServer()
                 ->withoutOverlapping(60); // Máx 1h execução
         }
+    }
+
+    protected function configureModelConnection(): void
+    {
+        $connection = config('requests-monitor.connection');
+
+        RequestMonitor::resolveConnectionUsing(function () use ($connection) {
+            return $connection ?: config('requests-monitor.connection');
+        });
     }
 }

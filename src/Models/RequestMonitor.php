@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class RequestMonitor extends Model
 {
-    protected $connection = config('requests-monitor.connection');
     protected $table = 'requests_monitor';
     public $timestamps = false;
 
