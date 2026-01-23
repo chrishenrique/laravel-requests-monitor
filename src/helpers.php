@@ -1,7 +1,7 @@
 <?php
 
 if (! function_exists('registerAction')) {
-    function registerAction(string $action, Model|null $requester = null, array $extra = []): void
+    function registerAction(string $action, $requester = null, array $extra = []): void
     {
         $monitor = app(\ChrisHenrique\RequestsMonitor\Contracts\RequestsMonitor::class);
 
