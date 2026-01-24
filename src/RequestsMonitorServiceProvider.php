@@ -40,7 +40,7 @@ class RequestsMonitorServiceProvider extends ServiceProvider
             $this->schedulePruneIfNotExists();
         });
 
-        RequestLog::resolveConnection(fn() => $this->getLogConnection());
+        RequestMonitor::resolveConnection(fn() => $this->getLogConnection());
     }
 
     public function register()
