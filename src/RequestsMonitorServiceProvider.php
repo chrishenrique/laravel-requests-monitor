@@ -40,7 +40,7 @@ class RequestsMonitorServiceProvider extends ServiceProvider
             $this->schedulePruneIfNotExists();
         });
 
-        RequestMonitor::resolveConnection(fn() => $this->getLogConnection());
+        RequestMonitor::resolveConnection(config('requests-monitor.connection'));
     }
 
     public function register()
@@ -71,11 +71,5 @@ class RequestsMonitorServiceProvider extends ServiceProvider
                 ->onOneServer()
                 ->withoutOverlapping(60); // Máx 1h execução
         }
-    }
-
-    protected function getLogConnection(): string
-    {
-        return config('requests-monitor.connection') 
-            ?: config('database.default', 'mysql');
     }
 }
