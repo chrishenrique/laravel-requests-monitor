@@ -13,31 +13,31 @@ class DefaultRequestsMonitor implements RequestsMonitor
     {
         $config = config('requests-monitor.exclude', []);
 
-        // 1. URL
         if (in_array($request->path(), $config['urls'] ?? [])) {
             return true;
         }
 
-        // 2. Route name
         $routeName = $request->route()?->getName();
         if ($routeName && $this->matchesAny($routeName, $config['routes'] ?? [])) {
             return true;
         }
 
-        // 3. Regex patterns
         foreach (($config['patterns'] ?? []) as $pattern) {
             if (preg_match($pattern, $request->fullUrl())) {
                 return true;
             }
         }
 
-        // 4. HEAD requests
         if ($request->method() === 'HEAD') {
             return true;
         }
 
-        // 5. Favicon
-        if (str_contains($request->path(), 'favicon')) {
+        if (in_array($request->method(), $config['methods'] ?? [])) {
+            return true;
+        }
+
+         if (str_contains($request->path(), 'favicon') || 
+            preg_match('/\.(css|js|png|jpg|gif|svg|ico|woff)/i', $request->path())) {
             return true;
         }
 

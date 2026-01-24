@@ -11,6 +11,7 @@ return [
             '/health',
             '/up',
             '/ping',
+            '/livewire/update',
         ],
 
         // Route names
@@ -22,10 +23,16 @@ return [
             'livewire.*',
         ],
 
+        'headers' => [
+            'X-Livewire',
+            'X-Livewire-Navigate',
+        ],
+
         // Regex patterns
         'patterns' => [
             '/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot)$/i',
-            '/api/v1/auth/login',
         ],
+
+        'methods' => ['OPTIONS', 'HEAD'],
     ],
 ];
