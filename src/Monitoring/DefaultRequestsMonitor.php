@@ -17,7 +17,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
             return true;
         }
 
-        $routeName = $request->route()?->getName();
+        $routeName = optional($request->route())->getName();
         if ($routeName && $this->matchesAny($routeName, $config['routes'] ?? [])) {
             return true;
         }
