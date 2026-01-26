@@ -32,7 +32,6 @@ class RequestsMonitorServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 PruneRequestsMonitorCommand::class,
-                InstallCommand::class,
             ]);
         }
 
