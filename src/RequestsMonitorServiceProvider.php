@@ -15,11 +15,15 @@ class RequestsMonitorServiceProvider extends ServiceProvider
     {
         require_once __DIR__ . '/helpers.php';
 
-        if ($this->app->runningInConsole()) {
+        if ($this->app->runningInConsole()) 
+        {
             $this->publishes([
                 __DIR__ . '/../config/requests-monitor.php' => config_path('requests-monitor.php'),
-             ], 'requests-monitor-config');
-            $this->publishes([__DIR__ . '/../database/migrations' => database_path('migrations')], 'requests-monitor-migrations');
+            ], 'requests-monitor-config');
+
+            $this->publishes([
+                $this->getMigrationPath() => database_path('migrations'),
+            ], 'requests-monitor-migrations');
         }
 
         $router = $this->app['router'];
@@ -68,5 +72,14 @@ class RequestsMonitorServiceProvider extends ServiceProvider
                 ->onOneServer()
                 ->withoutOverlapping(60); // Máx 1h execução
         }
+    }
+
+    protected function getMigrationPath(): string
+    {
+        if (PHP_VERSION_ID >= 80000) {
+            return __DIR__ . '/../database/migrations/php80';
+        }
+
+        return __DIR__ . '/../database/migrations/php74';
     }
 }
