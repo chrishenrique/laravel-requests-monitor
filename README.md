@@ -24,19 +24,19 @@ Compatible with **Laravel 7–12** and **PHP 7.4–8.x+**. Supports Livewire Nav
 
 ### 1. Install via Composer
 ```bash
-composer require chrissenrique/requests_monitor
+composer require chrissenrique/laravel-requests-monitor
 2. Publish Configuration
 
-bash
+```bash
 php artisan vendor:publish --tag="requests-monitor-config"
 3. Publish & Run Migration
 
-bash
+```bash
 php artisan vendor:publish --tag="requests-monitor-migrations"
 php artisan migrate
 4. Register Middleware in app/Http/Kernel.php
 
-php
+```php
 protected $middlewareAliases = [
     // ... other middleware
     'requests.monitor' => \ChrisHenrique\RequestsMonitor\Middlewares\LogRequestMiddleware::class,
@@ -45,7 +45,7 @@ protected $middlewareAliases = [
 
 Option A: In AppServiceProvider::boot()
 
-php
+```php
 public function boot()
 {
     $this->app['router']->pushMiddlewareToGroup('web', 'requests.monitor');
@@ -53,7 +53,7 @@ public function boot()
 }
 Option B: In app/Http/Kernel.php
 
-php
+```php
 protected $middlewareGroups = [
     'web' => [
         // ... other middleware
@@ -62,13 +62,13 @@ protected $middlewareGroups = [
 ];
 6. Configure .env (optional)
 
-text
+```text
 REQUESTS_MONITOR_DOMAIN=https://your-app.com
 REQUESTS_MONITOR_CONNECTION=mysql_logs
 REQUESTS_MONITOR_RETENTION_DAYS=90
 7. Schedule Pruning (in app/Console/Kernel.php)
 
-php
+```php
 protected function schedule(Schedule $schedule)
 {
     $schedule->command('model:prune-only ChrisHenrique\RequestsMonitor\Models\RequestLog')->daily();
@@ -96,7 +96,7 @@ Livewire Navigate compatible
 
 Manual Logging
 
-php
+```php
 // CLI, Jobs, Events, anywhere!
 app(\ChrisHenrique\RequestsMonitor\Contracts\RequestLogger::class)
     ->logManually([
@@ -110,7 +110,7 @@ Custom Logger
 
 Create your logger:
 
-php
+```php
 <?php
 
 namespace App\Logging;
@@ -146,7 +146,7 @@ class CustomRequestLogger implements RequestLogger
 }
 Bind in AppServiceProvider:
 
-php
+```php
 public function register()
 {
     $this->app->bind(
@@ -170,7 +170,7 @@ content	json	No	Input/headers/IP (array)
 created_at	timestamp	No	Creation timestamp
 Polymorphic Relations
 
-php
+```php
 $log = \ChrisHenrique\RequestsMonitor\Models\RequestLog::find(1);
 $user = $log->requester; // App\User, App\Customer, etc.
 $log->requester()->first(); // Eloquent relation
@@ -184,7 +184,7 @@ Run manually: php artisan model:prune-only ChrisHenrique\RequestsMonitor\Models\
 Schedule daily via Laravel Scheduler
 
 🧪 Testing
-bash
+```bash
 composer test
 Uses Orchestra Testbench for isolated testing.
 
@@ -198,7 +198,7 @@ Rate limiting possible via custom middleware logic
 Content logged before response (no response body by default)
 
 📊 Example Log Entry
-json
+```json
 {
   "domain": "https://myapp.com",
   "method": "POST",
@@ -215,7 +215,7 @@ json
   "created_at": "2026-01-22 10:00:00"
 }
 🚀 Quick Start Commands
-bash
+```bash
 # Install
 composer require chrissenrique/requests_monitor
 php artisan vendor:publish --tag="requests-monitor-config"
