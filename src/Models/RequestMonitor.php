@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class RequestMonitor extends Model
 {
+    protected $connection;
     protected $table = 'requests_monitor';
     public $timestamps = false;
 
@@ -26,6 +27,13 @@ class RequestMonitor extends Model
         'content' => 'array',
         'created_at' => 'datetime',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->connection = config('requests-monitor.connection', config('database.default'));
+    }
 
     public function requester(): MorphTo
     {
