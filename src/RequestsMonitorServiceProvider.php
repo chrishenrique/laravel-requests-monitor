@@ -38,8 +38,6 @@ class RequestsMonitorServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $this->schedulePruneIfNotExists();
         });
-
-        RequestMonitor::resolveConnection(config('requests-monitor.connection'));
     }
 
     public function register()
