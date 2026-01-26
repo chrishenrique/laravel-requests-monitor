@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class DefaultRequestsMonitor implements RequestsMonitor
 {
-    protected function shouldSkipRequest(\Illuminate\Http\Request $request): bool
+    public function shouldSkipRequest(\Illuminate\Http\Request $request): bool
     {
         $config = config('requests-monitor.exclude', []);
 

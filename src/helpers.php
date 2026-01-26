@@ -15,7 +15,6 @@ if (! function_exists('registerAction')) {
         $requesterData = array_merge([
             'action_name' => $action,
             'method' => 'EVENT',
-            'url' => $action,
             'content' => $extra,
         ], $requesterData);
 
