@@ -64,6 +64,10 @@ class DefaultRequestsMonitor implements RequestsMonitor
 
         $route = $request->route();
 
+        $inputs = collect($request->all())
+            ->reject(fn($value) => $value instanceof \Illuminate\Http\UploadedFile)
+            ->toArray();
+
         $data = [
             'domain'         => config('requests-monitor.domain'),
             'method'         => $request->method(),
@@ -73,7 +77,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
             'route_name'     => $route ? $route->getName() : null,
             'action_name'    => null,
             'content'        => [
-                'input'    => $request->all(),
+                'input'    => $inputs,
                 'headers'  => $request->headers->all(),
                 'ip'       => $request->ip(),
             ],
