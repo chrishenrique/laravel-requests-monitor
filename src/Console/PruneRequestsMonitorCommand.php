@@ -16,13 +16,11 @@ class PruneRequestsMonitorCommand extends Command
         $connection = config('requests-monitor.connection')
             ?? config('database.default');
 
-        $days   = config('requests-monitor.retention_days');
+        $days   = config('requests-monitor.prune_after_days');
         $domain = config('requests-monitor.domain');
 
-        $cutoff = now()->subDays($days);
-
         $query = RequestMonitor::on($connection)
-            ->where('created_at', '<', $cutoff);
+            ->where('created_at', '<', now()->subDays($days));
 
         if ($domain) {
             $query->where('domain', $domain);

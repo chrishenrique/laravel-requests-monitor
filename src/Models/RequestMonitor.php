@@ -60,7 +60,7 @@ class RequestMonitor extends Model
      */
     protected function performPruneQuery()
     {
-        $days = config('requests-monitor.retention_days', 90);
+        $days = config('requests-monitor.prune_after_days', 90);
         $domain = config('requests-monitor.domain');
 
         return static::where('created_at', '<', now()->subDays($days))

@@ -43,7 +43,7 @@ class CreateRequestsMonitorTable extends Migration
                 $table->string('method', 10)->default('GET');
                 $table->string('requester_type')->nullable();
                 $table->unsignedBigInteger('requester_id')->nullable();
-                $table->string('url')->nullable();
+                $table->text('url')->nullable();
                 $table->string('route_name')->nullable();
                 $table->string('action_name')->nullable();
                 $table->json('content')->nullable();
