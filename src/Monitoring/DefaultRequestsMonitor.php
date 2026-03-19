@@ -6,6 +6,7 @@ use ChrisHenrique\RequestsMonitor\Contracts\RequestsMonitor;
 use ChrisHenrique\RequestsMonitor\Jobs\StoreRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class DefaultRequestsMonitor implements RequestsMonitor
 {
@@ -63,6 +64,16 @@ class DefaultRequestsMonitor implements RequestsMonitor
         $user = $requester ?? $request->user();
         $route = $request->route();
 
+        try
+        {
+            $input = $this->cleanInput($request->all());
+        }
+        catch(\Exception $e)
+        {
+            report($e);
+            $input = $request->input();
+        }
+
         $payload = [
             'domain'         => config('requests-monitor.domain'),
             'method'         => $request->method(),
@@ -71,10 +82,9 @@ class DefaultRequestsMonitor implements RequestsMonitor
             'url'            => $request->fullUrl(),
             'route_name'     => $route ? $route->getName() : null,
             'action_name'    => null,
+            'execution_ms' => defined('LARAVEL_START') ? round((microtime(true) - LARAVEL_START) * 1000, 2) : 0,
             'content'        => [
-                'status_code' => $response->getStatusCode(),
-                'duration' => defined('LARAVEL_START') ? microtime(true) - LARAVEL_START : 0,
-                'input'    => $this->cleanInput($request->all()),
+                'input'    => $input,
                 'headers'  => $request->headers->all(),
                 'ip'       => $request->ip(),
             ],
@@ -115,17 +125,39 @@ class DefaultRequestsMonitor implements RequestsMonitor
         
         foreach ($maskedFields as $field) {
             if (isset($input[$field])) {
-                $input[$field] = '********'; // unset($input[$field])
+                $input[$field] = '********'; 
+                // unset($input[$field])
             }
         }
 
-        // Feature: Remover campos de input com classes (Ex: Upload de arquivos)
-        // Isso previne que o log tente serializar um binário de arquivo
-        array_walk_recursive($input, function (&$value, $key) {
+        $transform = function (&$value, $key) use ($maskedFields, &$transform) {
+
+            if (is_array($value)) {
+                foreach ($value as $k => &$v) {
+                    $transform($v, $k);
+                }
+                return;
+            }
+
+            if (in_array($key, $maskedFields, true)) {
+                $value = '********';
+                return;
+            }
+
+            if ($value instanceof UploadedFile) {
+                $value = [
+                    'name' => $value->getClientOriginalName(),
+                    'size' => $value->getSize(),
+                ];
+                return;
+            }
+
             if (is_object($value) && $this->shouldIgnoreType($value)) {
                 $value = '[FILTERED TYPE: ' . get_class($value) . ']';
             }
-        });
+        };
+
+        $transform($input, null);
 
         return $input;
     }
