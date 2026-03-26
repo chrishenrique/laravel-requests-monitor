@@ -36,14 +36,14 @@ class AlterUrlToRequestsMonitorTable extends Migration
     public function up(): void
     {
         $this->schema->table('requests_monitor', function (Blueprint $table) {
-            $table->text('url')->change();
+            $table->text('url')->nullable()->change();
         });
     }
 
     public function down(): void
     {
         $this->schema->table('requests_monitor', function (Blueprint $table) {
-            $table->string('url')->change();
+            $table->string('url')->nullable()->change();
         });
     }
 };
