@@ -23,10 +23,10 @@ return [
 
     'ignore' => [
         'urls' => [
-            '/health',
-            '/up',
-            '/ping',
-            '/livewire/update',
+            'health',
+            'up',
+            'ping',
+            'livewire/update',
         ],
 
         'paths' => [
