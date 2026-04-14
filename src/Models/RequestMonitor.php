@@ -21,6 +21,7 @@ class RequestMonitor extends Model
         'action_name',
         'content',
         'created_at',
+        'execution_ms',
     ];
 
     protected $casts = [
