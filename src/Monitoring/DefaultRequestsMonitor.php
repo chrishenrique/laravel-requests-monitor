@@ -6,13 +6,13 @@ use ChrisHenrique\RequestsMonitor\Contracts\RequestsMonitor;
 use ChrisHenrique\RequestsMonitor\Jobs\StoreRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Illuminate\Http\UploadedFile;
 
 class DefaultRequestsMonitor implements RequestsMonitor
 {
     public function shouldSkipRequest(\Illuminate\Http\Request $request): bool
     {
-        $config = config('requests-monitor.exclude', []);
+        $config = config('requests-monitor.ignore', []);
 
         if (in_array($request->path(), $config['urls'] ?? [])) {
             return true;
@@ -164,7 +164,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
 
     protected function shouldIgnoreType($object): bool
     {
-        $ignoredTypes = config('requests-monitor.ignore_input_types', []);
+        $ignoredTypes = config('requests-monitor.ignore.input_types', []);
         foreach ($ignoredTypes as $type) {
             if ($object instanceof $type) {
                 return true;

@@ -58,7 +58,7 @@ return [
         'methods' => ['OPTIONS', 'HEAD'],
 
         'input_types' => [
-            Illuminate\Http\UploadedFile::class,
+            \Illuminate\Http\UploadedFile::class,
         ],
     ],
 ];
