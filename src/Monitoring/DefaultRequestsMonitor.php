@@ -83,7 +83,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
         catch(\Exception $e)
         {
             report($e);
-            $input = $request->input();
+            $input = [];
         }
 
         $executionMs = $context['execution_ms']
@@ -166,7 +166,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
             if ($value instanceof UploadedFile) {
                 $value = [
                     'name' => $value->getClientOriginalName(),
-                    'size' => $value->getSize(),
+                    //'size' => $value->getSize(),
                 ];
                 return;
             }

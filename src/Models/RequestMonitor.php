@@ -23,6 +23,7 @@ class RequestMonitor extends Model
         'execution_ms',
         'content',
         'created_at',
+        'execution_ms',
     ];
 
     protected $casts = [
