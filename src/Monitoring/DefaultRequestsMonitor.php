@@ -7,6 +7,7 @@ use ChrisHenrique\RequestsMonitor\Jobs\StoreRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class DefaultRequestsMonitor implements RequestsMonitor
 {
@@ -14,8 +15,19 @@ class DefaultRequestsMonitor implements RequestsMonitor
     {
         $config = config('requests-monitor.ignore', []);
 
-        if (in_array($request->path(), $config['urls'] ?? [])) {
+        // $request->path() vem sem a barra inicial ('health'), então normaliza a config.
+        $urls = array_map(function ($url) {
+            return trim($url, '/') ?: '/';
+        }, $config['urls'] ?? []);
+
+        if (in_array($request->path(), $urls, true)) {
             return true;
+        }
+
+        foreach (($config['headers'] ?? []) as $header) {
+            if ($request->headers->has($header)) {
+                return true;
+            }
         }
 
         $routeName = optional($request->route())->getName();
@@ -37,7 +49,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
             return true;
         }
 
-         if (str_contains($request->path(), 'favicon') || 
+        if (Str::contains($request->path(), 'favicon') ||
             preg_match('/\.(css|js|png|jpg|gif|svg|ico|woff)/i', $request->path())) {
             return true;
         }
@@ -51,7 +63,7 @@ class DefaultRequestsMonitor implements RequestsMonitor
         return false;
     }
 
-    public function logFromRequest(Request $request, ?Model $requester = null): void
+    public function logFromRequest(Request $request, ?Model $requester = null, array $context = []): void
     {
         if (!config('requests-monitor.enabled', true)) {
             return;
@@ -74,6 +86,9 @@ class DefaultRequestsMonitor implements RequestsMonitor
             $input = $request->input();
         }
 
+        $executionMs = $context['execution_ms']
+            ?? (defined('LARAVEL_START') ? round((microtime(true) - LARAVEL_START) * 1000, 2) : 0);
+
         $payload = [
             'domain'         => config('requests-monitor.domain'),
             'method'         => $request->method(),
@@ -82,14 +97,18 @@ class DefaultRequestsMonitor implements RequestsMonitor
             'url'            => $request->fullUrl(),
             'route_name'     => $route ? $route->getName() : null,
             'action_name'    => null,
-            'execution_ms' => defined('LARAVEL_START') ? round((microtime(true) - LARAVEL_START) * 1000, 2) : 0,
+            'execution_ms'   => $executionMs,
             'content'        => [
                 'input'    => $input,
-                'headers'  => $request->headers->all(),
+                'headers'  => $this->cleanHeaders($request->headers->all()),
                 'ip'       => $request->ip(),
             ],
             'created_at'     => now(),
         ];
+
+        if (!empty($context['slow'])) {
+            $payload['content']['slow'] = $context['slow'];
+        }
 
         $this->dispatchJob($payload);
     }
@@ -160,6 +179,23 @@ class DefaultRequestsMonitor implements RequestsMonitor
         $transform($input, null);
 
         return $input;
+    }
+
+    /**
+     * Mascara headers sensíveis listados em mask_fields (ex: Authorization, Cookie).
+     * Os nomes de header do Symfony são minúsculos, então a comparação ignora caixa.
+     */
+    protected function cleanHeaders(array $headers): array
+    {
+        $masked = array_map('strtolower', config('requests-monitor.mask_fields', []));
+
+        foreach ($headers as $name => $values) {
+            if (in_array(strtolower($name), $masked, true)) {
+                $headers[$name] = ['********'];
+            }
+        }
+
+        return $headers;
     }
 
     protected function shouldIgnoreType($object): bool

@@ -2,7 +2,7 @@
     "name": "chrishenrique/laravel-requests-monitor",
     "description": "Centraliza requisições de apps Laravel em um DB unificado via job e middleware.",
     "type": "laravel-package",
-    "keywords": ["laravel", "requests", "monitor", "logging", "queue"],
+    "keywords": ["laravel", "requests", "monitor", "logging", "queue", "slow-requests", "n-plus-one"],
     "license": "MIT",
     "authors": [
         {
@@ -14,14 +14,16 @@
     ],
     "require": {
         "php": "^7.4|^8.0",
-        "laravel/framework": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-        "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-        "illuminate/contracts": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-        "illuminate/database": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-        "illuminate/queue": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0"
+        "ext-json": "*",
+        "laravel/framework": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0|^13.0"
     },
     "require-dev": {
-       
+        "doctrine/dbal": "^2.13|^3.0|^4.0",
+        "orchestra/testbench": "^5.0|^6.0|^7.0|^8.0|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^8.5|^9.5|^10.0|^11.0|^12.0"
+    },
+    "suggest": {
+        "doctrine/dbal": "Necessário no Laravel 7, 8 e 9 para a migration que altera a coluna url (->change())."
     },
     "autoload": {
         "psr-4": {
@@ -33,8 +35,11 @@
     },
     "autoload-dev": {
         "psr-4": {
-           
+            "ChrisHenrique\\RequestsMonitor\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "phpunit"
     },
     "extra": {
         "laravel": {
@@ -42,6 +47,9 @@
                 "ChrisHenrique\\RequestsMonitor\\RequestsMonitorServiceProvider"
             ]
         }
+    },
+    "config": {
+        "sort-packages": true
     },
     "minimum-stability": "dev",
     "prefer-stable": true

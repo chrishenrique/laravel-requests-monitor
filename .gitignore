@@ -6,3 +6,4 @@ composer.lock
 coverage
 node_modules
 vendor
+vendor.phpunit.cache

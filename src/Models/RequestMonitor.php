@@ -4,6 +4,7 @@ namespace ChrisHenrique\RequestsMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Artisan;
 
 class RequestMonitor extends Model
 {
@@ -19,12 +20,14 @@ class RequestMonitor extends Model
         'url',
         'route_name',
         'action_name',
+        'execution_ms',
         'content',
         'created_at',
     ];
 
     protected $casts = [
         'content' => 'array',
+        'execution_ms' => 'float',
         'created_at' => 'datetime',
     ];
 
@@ -41,26 +44,11 @@ class RequestMonitor extends Model
     }
 
     /**
-     * Laravel 8+: Prunable trait
-     * Laravel 7: Manual implementation
+     * Query de registros expirados (mesmo critério do requests-monitor:prune).
      */
     public function prunable()
     {
-        // Laravel 8+ com trait
-        if (trait_exists(\Illuminate\Database\Eloquent\Prunable::class)) {
-            return $this->performPruneQuery();
-        }
-
-        // Laravel 7 fallback
-        return $this->performLaravel7Prune();
-    }
-
-    /**
-     * Query comum para prune (usada por ambos)
-     */
-    protected function performPruneQuery()
-    {
-        $days = config('requests-monitor.prune_after_days', 90);
+        $days = (int) config('requests-monitor.prune_after_days', 90);
         $domain = config('requests-monitor.domain');
 
         return static::where('created_at', '<', now()->subDays($days))
@@ -70,31 +58,10 @@ class RequestMonitor extends Model
     }
 
     /**
-     * Laravel 7: Método manual (sem trait)
+     * Remove registros antigos (funciona do Laravel 7 ao 13).
      */
-    protected function performLaravel7Prune()
+    public static function pruneOld(): void
     {
-        $query = $this->performPruneQuery();
-        
-        if (app()->runningInConsole() && $this->option('force')) {
-            return $query->delete();
-        }
-
-        $this->warn("Laravel 7: Use 'php artisan requests-monitor:prune' instead of model:prune");
-        return $query;
-    }
-
-    /**
-     * Laravel 7: Método público para compatibilidade artisan model:prune-only
-     */
-    public static function pruneOld()
-    {
-        if (! trait_exists(\Illuminate\Database\Eloquent\Prunable::class)) {
-            Artisan::call('requests-monitor:prune', ['--force' => true]);
-            return;
-        }
-
-        // Laravel 8+: Normal prune
-        static::prune();
+        Artisan::call('requests-monitor:prune');
     }
 }

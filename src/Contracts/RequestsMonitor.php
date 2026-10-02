@@ -7,6 +7,6 @@ use Illuminate\Http\Request;
 
 interface RequestsMonitor
 {
-    public function logFromRequest(Request $request, ?Model $requester = null): void;
+    public function logFromRequest(Request $request, ?Model $requester = null, array $context = []): void;
     public function logManually(array $attributes): void;
 }

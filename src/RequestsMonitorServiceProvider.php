@@ -3,11 +3,12 @@
 namespace ChrisHenrique\RequestsMonitor;
 
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use ChrisHenrique\RequestsMonitor\Console\InstallCommand;
 use ChrisHenrique\RequestsMonitor\Console\PruneRequestsMonitorCommand;
-use ChrisHenrique\RequestsMonitor\Models\RequestMonitor;
+use ChrisHenrique\RequestsMonitor\Monitoring\QueryWatcher;
 
 class RequestsMonitorServiceProvider extends ServiceProvider
 {
@@ -22,7 +23,7 @@ class RequestsMonitorServiceProvider extends ServiceProvider
             ], 'requests-monitor-config');
 
             $this->publishes([
-                $this->getMigrationPath() => database_path('migrations'),
+                static::migrationPath() => database_path('migrations'),
             ], 'requests-monitor-migrations');
         }
 
@@ -35,12 +36,33 @@ class RequestsMonitorServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                InstallCommand::class,
                 PruneRequestsMonitorCommand::class,
             ]);
         }
 
-        $this->app->booted(function () {
-            $this->schedulePruneIfNotExists();
+        $this->registerPruneSchedule();
+
+        $this->registerQueryWatcher();
+    }
+
+    /**
+     * Listener leve para detecção de N+1 — apenas conta repetições do mesmo SQL,
+     * sem guardar bindings/payloads. Só é registrado se habilitado na config.
+     */
+    protected function registerQueryWatcher(): void
+    {
+        if (! config('requests-monitor.enabled', true)) {
+            return;
+        }
+
+        if (! config('requests-monitor.slow_request.enabled', false)
+            || ! config('requests-monitor.slow_request.query_watcher.enabled', true)) {
+            return;
+        }
+
+        DB::listen(function ($query) {
+            $this->app->make(QueryWatcher::class)->record($query->sql, $query->time);
         });
     }
 
@@ -48,22 +70,37 @@ class RequestsMonitorServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/requests-monitor.php', 'requests-monitor');
 
+        $this->app->singleton(QueryWatcher::class);
+
         $this->app->bind(
             Contracts\RequestsMonitor::class,
             fn ($app) => $app->make(config('requests-monitor.monitor_resolver',  Monitoring\DefaultRequestsMonitor::class))
         );
     }
 
-    protected function schedulePruneIfNotExists(): void
+    /**
+     * Agenda o prune quando o Schedule for resolvido (schedule:run, schedule:list...),
+     * independente da ordem de boot do Console Kernel entre as versões do Laravel.
+     */
+    protected function registerPruneSchedule(): void
     {
         if (! $this->app->runningInConsole()) {
             return;
         }
 
-        $schedule = $this->app->make(Schedule::class);
-        
+        $this->app->afterResolving(Schedule::class, function (Schedule $schedule) {
+            $this->schedulePruneIfNotExists($schedule);
+        });
+
+        if ($this->app->resolved(Schedule::class)) {
+            $this->schedulePruneIfNotExists($this->app->make(Schedule::class));
+        }
+    }
+
+    protected function schedulePruneIfNotExists(Schedule $schedule): void
+    {
         $pruneExists = collect($schedule->events())
-            ->some(fn ($event) => str_contains($event->command, 'requests-monitor:prune'));
+            ->some(fn ($event) => Str::contains((string) $event->command, 'requests-monitor:prune'));
 
         if (! $pruneExists) {
             $schedule->command('requests-monitor:prune')
@@ -74,9 +111,13 @@ class RequestsMonitorServiceProvider extends ServiceProvider
         }
     }
 
-    protected function getMigrationPath(): string
+    /**
+     * Pasta de migrations conforme a versão do PHP (php80 usa migrations anônimas,
+     * suportadas apenas a partir do Laravel 8.37).
+     */
+    public static function migrationPath(): string
     {
-        if (PHP_VERSION_ID >= 80000) {
+        if (PHP_VERSION_ID >= 80000 && version_compare(app()->version(), '8.37.0', '>=')) {
             return __DIR__ . '/../database/migrations/php80';
         }
 
